@@ -21,6 +21,7 @@ import PublicService from './pages/public/Services';
 import PublicTestimonials from './pages/public/Testimonials';
 import About from './pages/public/About'; // Banayenge abhi
 import PublicContact from './pages/public/Contact'; // Banayenge abhi
+import ScrollToTop from './components/ScrollToTop';
 
 // Route Protector
 const ProtectedRoute = ({ children }) => {
@@ -32,6 +33,7 @@ const ProtectedRoute = ({ children }) => {
 export default function App() {
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
         {/* Auth Routes */}
         <Route path="/admin/login" element={<Login />} />
