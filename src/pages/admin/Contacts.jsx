@@ -29,7 +29,7 @@ export default function Contacts() {
       try {
         await api.delete(`/admin/contacts/${id}`);
         // UI se turant hata dein bina refresh kiye
-        setContacts(contacts.filter(contact => contact._id !== id));
+        setContacts(contacts.filter(contact => contact.id !== id));
       } catch (error) {
         console.error("Failed to delete contact", error.message);
         alert("Failed to delete the message. Please try again.");
