@@ -1,51 +1,114 @@
 import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Lock, AlertCircle, CheckCircle } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Mail, ArrowLeft, AlertCircle, CheckCircle, Send } from 'lucide-react';
+import { motion } from 'framer-motion';
 import api from '../../utils/api';
 
 export default function ResetPassword() {
-  const [newPassword, setNewPassword] = useState('');
-  const [status, setStatus] = useState({ loading: false, error: '', success: '' });
-  
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
-  const token = new URLSearchParams(location.search).get('token');
 
   const handleReset = async (e) => {
     e.preventDefault();
-    if (!token) return setStatus({ loading: false, error: 'Invalid token', success: '' });
-    
-    setStatus({ loading: true, error: '', success: '' });
+    setError('');
+    setMessage('');
+    setLoading(true);
+
     try {
-      const response = await api.post('/auth/reset-password', { token, newPassword });
-      setStatus({ loading: false, error: '', success: response.data.message });
-      setTimeout(() => navigate('/admin/login'), 3000);
+      // API call to send reset email (Adjust endpoint if your backend uses a different route)
+      const res = await api.post('/auth/forgot-password', { email });
+      setMessage(res.data.message || 'Password reset link sent to your email.');
+      setEmail(''); // clear input on success
     } catch (err) {
-      setStatus({ loading: false, error: err.response?.data?.error || 'Failed to reset', success: '' });
+      setError(err.response?.data?.message || 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-slate-800 rounded-2xl shadow-xl border border-slate-700 p-8">
-        <h2 className="text-2xl font-bold text-white mb-6 text-center">Create New Password</h2>
-        
-        {status.error && <div className="mb-4 bg-red-500/10 text-red-400 p-3 rounded-lg flex gap-2 text-sm"><AlertCircle size={18} /> {status.error}</div>}
-        {status.success && <div className="mb-4 bg-emerald-500/10 text-emerald-400 p-3 rounded-lg flex gap-2 text-sm"><CheckCircle size={18} /> {status.success} Redirecting...</div>}
-
-        <form onSubmit={handleReset} className="space-y-5">
-          <div>
-            <label className="block text-sm text-slate-300 mb-1">New Password</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-3 text-slate-500" size={18} />
-              <input type="password" required value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full pl-10 pr-3 py-2.5 bg-slate-900 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-emerald-500 outline-none" />
-            </div>
-          </div>
-          <button type="submit" disabled={!token || status.loading || status.success} className="w-full py-3 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 disabled:opacity-50">
-            {status.loading ? 'Updating...' : 'Update Password'}
-          </button>
-        </form>
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
+          <span className="text-4xl font-extrabold text-slate-900 tracking-tight cursor-pointer" onClick={() => navigate('/')}>
+            CA<span className="text-emerald-600">Firm</span>.
+          </span>
+          <h2 className="mt-6 text-center text-3xl font-bold text-slate-900">
+            Reset Password
+          </h2>
+          <p className="mt-2 text-center text-sm text-slate-600">
+            Enter your email to receive a password reset link
+          </p>
+        </motion.div>
       </div>
+
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow-xl shadow-slate-200/50 sm:rounded-3xl sm:px-10 border border-slate-100">
+          
+          {/* SUCCESS MESSAGE */}
+          {message ? (
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center">
+              <div className="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-emerald-100 mb-4">
+                <CheckCircle size={28} className="text-emerald-600" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Check your email</h3>
+              <p className="text-sm text-slate-600 mb-6 px-4 leading-relaxed">
+                We've sent a password reset link to your email address. Please check your inbox (and spam folder).
+              </p>
+              <Link 
+                to="/admin/login" 
+                className="w-full flex justify-center items-center gap-2 py-3.5 px-4 border border-slate-200 rounded-xl shadow-sm text-sm font-bold text-slate-700 bg-white hover:bg-slate-50 transition-colors"
+              >
+                <ArrowLeft size={18} /> Back to Login
+              </Link>
+            </motion.div>
+          ) : (
+            /* RESET FORM */
+            <form className="space-y-6" onSubmit={handleReset}>
+              {error && (
+                <div className="p-4 bg-red-50 text-red-700 rounded-xl flex items-center gap-3 border border-red-100 text-sm font-medium">
+                  <AlertCircle size={18} className="shrink-0" /> {error}
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Email Address</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                    <Mail size={20} />
+                  </div>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="block w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none transition sm:text-sm"
+                    placeholder="admin@cafirm.com"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading || !email}
+                className="w-full flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent rounded-xl shadow-md text-sm font-bold text-white bg-slate-900 hover:bg-emerald-600 transition-colors disabled:opacity-50"
+              >
+                {loading ? 'Sending Link...' : 'Send Reset Link'} <Send size={18} />
+              </button>
+
+              <div className="text-center mt-4">
+                <Link to="/admin/login" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-emerald-600 transition-colors">
+                  <ArrowLeft size={16} /> Back to Login
+                </Link>
+              </div>
+            </form>
+          )}
+
+        </div>
+      </motion.div>
     </div>
   );
 }
