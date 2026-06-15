@@ -31,7 +31,7 @@ export default function Contacts() {
         // UI se turant hata dein bina refresh kiye
         setContacts(contacts.filter(contact => contact._id !== id));
       } catch (error) {
-        console.error("Failed to delete contact", error);
+        console.error("Failed to delete contact", error.message);
         alert("Failed to delete the message. Please try again.");
       }
     }
@@ -93,7 +93,7 @@ export default function Contacts() {
             >
               {/* Delete Button (Top Right) */}
               <button 
-                onClick={() => handleDelete(contact._id)}
+                onClick={() => handleDelete(contact.id)}
                 className="absolute top-6 right-6 text-slate-300 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
                 title="Delete Message"
               >
